@@ -1,0 +1,7 @@
+jupyter
+ipykernel
+pandas
+torch
+transformers
+spacy>=3.7,<3.8
+scispacy==0.5.4
