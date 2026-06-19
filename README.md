@@ -78,6 +78,43 @@ python models\scispacy_and_regex\scispacy_regex_ner.py --text "Dr. Smith prescri
 
 If a scispaCy model is missing, the script prints the exact `python -m pip install ...` command for that model. This approach has no dependency on `models\pre_fine_tuned_models`.
 
+## Approach 3: Local Qwen2.5 with Ollama
+
+The third approach uses the local Qwen2.5 model through Ollama. The notebook is:
+
+```text
+\Deep-learning-Lab\models\llm\qwen25_clinical_ner_ollama.ipynb
+```
+
+The runnable script is:
+
+```text
+\Deep-learning-Lab\models\llm\qwen25_clinical_ner_ollama.py
+```
+
+This script sends one clinical text input to the local Ollama server, asks `qwen2.5:14b-instruct` to return span-level clinical NER JSON, repairs offsets, removes overlapping duplicate spans, and prints the final entity list directly in the terminal. It does not save JSON or CSV files.
+
+Before running it, make sure Ollama is installed, running, and has the model:
+
+```powershell
+ollama pull qwen2.5:14b-instruct
+```
+
+Run it interactively from the project root:
+
+```powershell
+cd \Deep-learning-Lab
+python models\llm\qwen25_clinical_ner_ollama.py
+```
+
+Or pass the input text directly:
+
+```powershell
+python models\llm\qwen25_clinical_ner_ollama.py --text "Dr. Smith prescribed ibuprofen 400 mg PO twice daily for 7 days."
+```
+
+The Qwen model can take time to respond, so the script shows a small loading indicator while Ollama is generating. Use this approach when you want local LLM-based extraction without sending clinical text to an external API.
+
 # Dataset Downloads
 
 ## MACCROBAT
