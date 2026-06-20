@@ -4,6 +4,12 @@ import EntityPanel from "../components/EntityPanel";
 import { renderHighlightedText } from "../utils/highlightText.jsx";
 import * as pdfjsLib from "pdfjs-dist";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  new URL(
+    "pdfjs-dist/build/pdf.worker.min.mjs",
+    import.meta.url
+  ).toString();
+
 export default function Home() {
   const [selectedModel, setSelectedModel] = useState(
     "Ensemble Transformer"
@@ -59,13 +65,24 @@ export default function Home() {
       setIsLoading(true);
   
       const inputText =
-        uploadedFile?.text || text;
+      uploadedFile?.text || text;
+
+    console.log("INPUT TEXT:");
+    console.log(inputText);
+
+    console.log("TEXT LENGTH:");
+    console.log(inputText.length);
   
-      const response =
-        await annotateText(
-          selectedModel,
-          inputText
-        );
+    const response = await annotateText(
+      selectedModel,
+      inputText
+    );
+    
+    if (response.error) {
+      alert(response.error);
+      setIsLoading(false);
+      return;
+    }
   
       setAnnotations(
         response.entities
@@ -110,6 +127,58 @@ export default function Home() {
       meaning_group:
         editedLabel,
     });
+  };
+
+  const handleClearAll = () => {
+    setText("");
+    setAnnotations([]);
+    setSelectedEntity(null);
+    setEditedLabel("");
+    setUploadedFile(null);
+  };
+
+  const handleDownloadJSON = () => {
+    const exportData = {
+      document_name:
+        uploadedFile?.name ||
+        "manual_input",
+  
+      annotation_model:
+        selectedModel,
+  
+      annotations:
+        annotations,
+    };
+  
+    const jsonString =
+      JSON.stringify(
+        exportData,
+        null,
+        2
+      );
+  
+    const blob = new Blob(
+      [jsonString],
+      {
+        type:
+          "application/json",
+      }
+    );
+  
+    const url =
+      URL.createObjectURL(blob);
+  
+    const link =
+      document.createElement("a");
+  
+    link.href = url;
+  
+    link.download =
+      "annotations.json";
+  
+    link.click();
+  
+    URL.revokeObjectURL(url);
   };
   
   const handleFileUpload = async (event) => {
@@ -171,8 +240,14 @@ export default function Home() {
         });
       } catch (error) {
         console.error(
-          "PDF extraction failed:",
-          error
+          "PDF extraction failed:"
+        );
+        
+        console.error(error);
+        
+        alert(
+          "PDF Error: " +
+            (error?.message || error)
         );
       }
     }
@@ -312,7 +387,7 @@ export default function Home() {
 
         <input
           type="file"
-          accept=".txt, .pdf"
+          accept=".txt,.pdf"
           ref={fileInputRef}
           style={{ display: "none" }}
           onChange={handleFileUpload}
@@ -355,6 +430,44 @@ export default function Home() {
               : "Annotate"
           }
         </button>
+
+        <button
+        onClick={handleClearAll}
+        style={{
+          background: "#ef4444",
+          color: "white",
+          border: "none",
+          padding: "12px 22px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          fontWeight: "600",
+          marginLeft: "10px",
+        }}
+      >
+        ↺ Clear All
+      </button>
+
+      <button
+        onClick={
+          handleDownloadJSON
+        }
+        disabled={
+          annotations.length === 0
+        }
+        style={{
+          background: "#16a34a",
+          color: "white",
+          border: "none",
+          padding: "12px 22px",
+          borderRadius: "10px",
+          cursor: "pointer",
+          fontWeight: "600",
+          marginLeft: "10px",
+        }}
+      >
+        ⬇ Export JSON
+      </button>
+
       </div>
 
       {

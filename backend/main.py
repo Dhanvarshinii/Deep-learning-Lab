@@ -38,6 +38,22 @@ def root():
 @app.post("/predict")
 def predict(request: PredictRequest):
 
+    MODEL_LIMITS = {
+        "Ensemble Transformer": 1500,
+    }
+
+    limit = MODEL_LIMITS.get(request.model)
+
+    if limit and len(request.text) > limit:
+        return {
+            "error": (
+                f"{request.model} supports up to "
+                f"{limit} characters. "
+                f"Received {len(request.text)}."
+            ),
+            "entities": [],
+        }
+        
     result = subprocess.run(
         [
             "python",
