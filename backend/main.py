@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
+import subprocess
+import re
 
 app = FastAPI()
 
@@ -36,27 +38,47 @@ def root():
 @app.post("/predict")
 def predict(request: PredictRequest):
 
+    result = subprocess.run(
+        [
+            "python",
+            "../models/pre_fine_tuned_models/ensemble_pretrained_ner.py",
+            "--text",
+            request.text,
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout
+
+    entities = []
+
+    lines = output.splitlines()
+
+    for line in lines:
+
+        if not re.match(r"^\d+\s+\|", line):
+            continue
+
+        parts = [p.strip() for p in line.split("|")]
+
+        if len(parts) < 8:
+            continue
+
+        entities.append(
+            {
+                "meaning_group": parts[1],
+                "selected_text": parts[2],
+                "model": parts[3],
+                "original_label": parts[4],
+                "start": int(parts[5]),
+                "end": int(parts[6]),
+                "score": float(parts[7]),
+            }
+        )
+
     return {
         "model": request.model,
         "text": request.text,
-        "entities": [
-            {
-                "meaning_group": "PERSON_PROVIDER",
-                "selected_text": "Dr. Emily Smith",
-                "model": "phi_deidentifier",
-                "original_label": "HCW",
-                "start": 0,
-                "end": 15,
-                "score": 0.9989,
-            },
-            {
-                "meaning_group": "MEDICATION",
-                "selected_text": "ibuprofen",
-                "model": "medication_ner",
-                "original_label": "Drug",
-                "start": 27,
-                "end": 36,
-                "score": 0.9972,
-            },
-        ],
+        "entities": entities,
     }
