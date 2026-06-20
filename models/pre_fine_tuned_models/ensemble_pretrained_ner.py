@@ -52,7 +52,6 @@ MODEL_SPECS = [
 
 
 # Labels that mean the same practical thing across the three notebooks.
-# Deduping is only done inside these shared meaning groups.
 LABEL_TO_MEANING_GROUP = {
     # Dates and times.
     "DATE": "DATE",
@@ -222,7 +221,26 @@ def resolve_overlaps(
         for cluster_items in clusters.values():
             selected.append(choose_winner(cluster_items))
 
+    selected = resolve_cross_group_text_matches(selected)
     return sorted(selected, key=lambda item: (item.start, item.end, item.meaning_group))
+
+
+def resolve_cross_group_text_matches(candidates: list[EntityCandidate]) -> list[EntityCandidate]:
+    if len(candidates) <= 1:
+        return candidates
+
+    union_find = UnionFind(len(candidates))
+    for left_idx, left_item in enumerate(candidates):
+        for right_idx in range(left_idx + 1, len(candidates)):
+            right_item = candidates[right_idx]
+            if has_substring_match(left_item, right_item):
+                union_find.union(left_idx, right_idx)
+
+    clusters: dict[int, list[EntityCandidate]] = {}
+    for idx, item in enumerate(candidates):
+        clusters.setdefault(union_find.find(idx), []).append(item)
+
+    return [choose_winner(cluster_items) for cluster_items in clusters.values()]
 
 
 def load_pipeline(spec: ModelSpec, device: int):

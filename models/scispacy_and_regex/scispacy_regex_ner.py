@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 import re
 import shutil
 import sys
@@ -485,7 +486,35 @@ def resolve_overlaps(candidates: list[EntityCandidate]) -> list[SelectedEntity]:
         for cluster_items in clusters.values():
             selected.append(select_cluster(cluster_items, regex_priority_ids))
 
+    selected = resolve_cross_group_text_matches(selected)
     return sorted(selected, key=lambda item: (item.candidate.start, item.candidate.end, item.candidate.meaning_group))
+
+
+def resolve_cross_group_text_matches(selected: list[SelectedEntity]) -> list[SelectedEntity]:
+    if len(selected) <= 1:
+        return selected
+
+    union_find = UnionFind(len(selected))
+    for left_idx, left_item in enumerate(selected):
+        for right_idx in range(left_idx + 1, len(selected)):
+            right_item = selected[right_idx]
+            if has_substring_match(left_item.candidate, right_item.candidate):
+                union_find.union(left_idx, right_idx)
+
+    clusters: dict[int, list[SelectedEntity]] = {}
+    for idx, item in enumerate(selected):
+        clusters.setdefault(union_find.find(idx), []).append(item)
+
+    resolved: list[SelectedEntity] = []
+    for cluster_items in clusters.values():
+        if len(cluster_items) == 1:
+            resolved.extend(cluster_items)
+            continue
+
+        chosen = random.choice(cluster_items)
+        resolved.append(SelectedEntity(chosen.candidate, "random choice among cross-group text matches"))
+
+    return resolved
 
 
 def terminal_width() -> int:
