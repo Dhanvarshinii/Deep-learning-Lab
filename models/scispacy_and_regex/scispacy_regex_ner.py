@@ -250,6 +250,9 @@ MODEL_GROUP_RANKS = {
 }
 
 
+MIN_SUBSTRING_MATCH_CHARS = 4
+
+
 def supports_color() -> bool:
     return sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
 
@@ -271,6 +274,10 @@ def has_substring_match(left: EntityCandidate, right: EntityCandidate) -> bool:
     left_norm = normalize_for_match(left.text)
     right_norm = normalize_for_match(right.text)
     if not left_norm or not right_norm:
+        return False
+    if left_norm == right_norm:
+        return True
+    if min(len(left_norm), len(right_norm)) < MIN_SUBSTRING_MATCH_CHARS:
         return False
     return left_norm in right_norm or right_norm in left_norm
 
