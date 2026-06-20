@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { annotateText } from "../services/annotationService";
 import EntityPanel from "../components/EntityPanel";
 import { renderHighlightedText } from "../utils/highlightText.jsx";
+import * as pdfjsLib from "pdfjs-dist";
 
 export default function Home() {
   const [selectedModel, setSelectedModel] = useState(
@@ -15,6 +16,14 @@ export default function Home() {
 
   const [editedLabel, setEditedLabel] =
     useState("");
+
+  const fileInputRef = useRef(null);
+
+  const [uploadedFile, setUploadedFile] =
+  useState(null);
+
+  const [isLoading, setIsLoading] =
+    useState(false);
 
   const colorPalette = [
     "#2563eb",
@@ -47,23 +56,29 @@ export default function Home() {
 
   const handleAnnotate = async () => {
     try {
+      setIsLoading(true);
+  
+      const inputText =
+        uploadedFile?.text || text;
+  
       const response =
         await annotateText(
           selectedModel,
-          text
+          inputText
         );
-
-      console.log("ENTITIES:");
-      console.table(response.entities);
-
+  
       setAnnotations(
         response.entities
       );
+  
+      setText(inputText);
     } catch (error) {
       console.error(
         "Backend Error:",
         error
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -82,19 +97,85 @@ export default function Home() {
               editedLabel,
           };
         }
-
+  
         return item;
       });
-
+  
     setAnnotations(
       updatedAnnotations
     );
-
+  
     setSelectedEntity({
       ...selectedEntity,
       meaning_group:
         editedLabel,
     });
+  };
+  
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+  
+    if (!file) return;
+  
+    // TXT FILE
+    if (file.name.endsWith(".txt")) {
+      const reader = new FileReader();
+  
+      reader.onload = (e) => {
+        setUploadedFile({
+          name: file.name,
+          text: e.target.result,
+        });
+      };
+  
+      reader.readAsText(file);
+      return;
+    }
+  
+    // PDF FILE
+    if (file.name.endsWith(".pdf")) {
+      try {
+        const arrayBuffer =
+          await file.arrayBuffer();
+  
+        const pdf =
+          await pdfjsLib.getDocument({
+            data: arrayBuffer,
+          }).promise;
+  
+        let extractedText = "";
+  
+        for (
+          let pageNum = 1;
+          pageNum <= pdf.numPages;
+          pageNum++
+        ) {
+          const page =
+            await pdf.getPage(pageNum);
+  
+          const textContent =
+            await page.getTextContent();
+  
+          const pageText =
+            textContent.items
+              .map((item) => item.str)
+              .join(" ");
+  
+          extractedText +=
+            pageText + "\n\n";
+        }
+  
+        setUploadedFile({
+          name: file.name,
+          text: extractedText,
+        });
+      } catch (error) {
+        console.error(
+          "PDF extraction failed:",
+          error
+        );
+      }
+    }
   };
 
   return (
@@ -191,7 +272,11 @@ export default function Home() {
 
         <textarea
           rows="6"
-          value={text}
+          value={
+            uploadedFile
+              ? ""
+              : text
+          }
           placeholder="Paste clinical text here..."
           onChange={(e) =>
             setText(e.target.value)
@@ -225,11 +310,21 @@ export default function Home() {
           Actions
         </h3>
 
+        <input
+          type="file"
+          accept=".txt, .pdf"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleFileUpload}
+        />
+
         <button
+          onClick={() =>
+            fileInputRef.current.click()
+          }
           style={{
             background: "white",
-            border:
-              "2px solid #2563eb",
+            border: "2px solid #2563eb",
             color: "#2563eb",
             padding: "12px 22px",
             borderRadius: "10px",
@@ -243,6 +338,7 @@ export default function Home() {
 
         <button
           onClick={handleAnnotate}
+          disabled={isLoading}
           style={{
             background: "#2563eb",
             color: "white",
@@ -253,10 +349,44 @@ export default function Home() {
             fontWeight: "600",
           }}
         >
-          Annotate
+          {
+            isLoading
+              ? "Annotating..."
+              : "Annotate"
+          }
         </button>
       </div>
 
+      {
+        uploadedFile && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "12px",
+              background: "#f3f4f6",
+              borderRadius: "10px",
+              display: "inline-block",
+            }}
+          >
+            📄 {uploadedFile.name}
+          </div>
+        )
+      }
+
+      {
+        isLoading && (
+          <div
+            style={{
+              textAlign: "center",
+              marginBottom: "20px",
+              fontWeight: "600",
+              color: "#2563eb",
+            }}
+          >
+            Processing document and extracting entities...
+          </div>
+        )
+      }
       <div
         style={{
           display: "grid",
