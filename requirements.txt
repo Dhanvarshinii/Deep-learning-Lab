@@ -1,0 +1,8 @@
+jupyter
+ipykernel
+pandas
+torch
+transformers
+click>=8.1,<9
+spacy>=3.7,<3.8
+scispacy==0.5.4
