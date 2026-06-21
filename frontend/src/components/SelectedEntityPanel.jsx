@@ -3,6 +3,9 @@ export default function SelectedEntityPanel({
     editedLabel,
     setEditedLabel,
     handleSaveEntity,
+    handleDeleteEntity,
+    showDeletePopup,
+    setShowDeletePopup,
     setSelectedEntity,
     annotations,
   }) {
@@ -110,21 +113,53 @@ export default function SelectedEntityPanel({
         >
           <button
             onClick={
-              handleSaveEntity
+                handleSaveEntity
             }
-          >
+            style={{
+                background: "#16a34a",
+                color: "white",
+                border: "none",
+                padding: "10px 18px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                marginRight: "10px",
+            }}
+            >
             Save Changes
-          </button>
+            </button>
   
-          <button
+            <button
+                onClick={() =>
+                    setShowDeletePopup(true)
+                }
+                style={{
+                    background: "#dc2626",
+                    color: "white",
+                    border: "none",
+                    padding: "10px 18px",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    marginRight: "10px",
+                }}
+                >
+                Delete
+                </button>
+
+            <button
             onClick={() =>
-              setSelectedEntity(
-                null
-              )
+                setSelectedEntity(null)
             }
-          >
+            style={{
+                background: "#6b7280",
+                color: "white",
+                border: "none",
+                padding: "10px 18px",
+                borderRadius: "8px",
+                cursor: "pointer",
+            }}
+            >
             Close
-          </button>
+            </button>
         </div>
       </div>
     );

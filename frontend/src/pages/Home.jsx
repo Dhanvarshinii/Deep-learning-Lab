@@ -10,6 +10,7 @@ import AddAnnotationModal from "../components/AddAnnotationModal";
 import DocumentViewer from "../components/DocumentViewer";
 import ModelSelector from "../components/ModelSelector";
 import SelectedEntityPanel from "../components/SelectedEntityPanel";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -72,6 +73,10 @@ export default function Home() {
 
   const [selectionPopup, setSelectionPopup] =
     useState(null);
+
+  const [showDeletePopup,
+    setShowDeletePopup] =
+    useState(false);
 
   const [newLabel, setNewLabel] =
     useState("");
@@ -206,6 +211,31 @@ export default function Home() {
       meaning_group:
         editedLabel,
     });
+  };
+
+  const handleDeleteEntity = () => {
+    if (!selectedEntity) {
+      return;
+    }
+  
+    const updatedAnnotations =
+      annotations.filter(
+        (item) =>
+          !(
+            item.selected_text ===
+              selectedEntity.selected_text &&
+            item.model ===
+              selectedEntity.model &&
+            item.start ===
+              selectedEntity.start
+          )
+      );
+  
+    setAnnotations(
+      updatedAnnotations
+    );
+  
+    setSelectedEntity(null);
   };
 
   const handleClearAll = () => {
@@ -461,6 +491,15 @@ export default function Home() {
           handleSaveEntity={
             handleSaveEntity
           }
+          handleDeleteEntity={
+            handleDeleteEntity
+          }
+          showDeletePopup={
+            showDeletePopup
+          }
+          setShowDeletePopup={
+            setShowDeletePopup
+          }
           setSelectedEntity={
             setSelectedEntity
           }
@@ -481,6 +520,21 @@ export default function Home() {
           setSelectionPopup={
             setSelectionPopup
           }
+        />
+
+      <DeleteConfirmationModal
+        showDeletePopup={
+          showDeletePopup
+        }
+        selectedEntity={
+          selectedEntity
+        }
+        handleDeleteEntity={
+          handleDeleteEntity
+        }
+        setShowDeletePopup={
+          setShowDeletePopup
+        }
         />
         </div>
       </div>
