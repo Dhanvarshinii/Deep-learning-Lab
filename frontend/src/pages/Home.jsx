@@ -1,8 +1,15 @@
 import { useState, useRef } from "react";
 import { annotateText } from "../services/annotationService";
 import EntityPanel from "../components/EntityPanel";
-import { renderHighlightedText } from "../utils/highlightText.jsx";
+import ActionButtons from "../components/ActionButtons";
+import ClinicalTextInput from "../components/ClinicalTextInput";
+import UploadedFileCard from "../components/UploadedFileCard";
 import * as pdfjsLib from "pdfjs-dist";
+import LoadingIndicator from "../components/LoadingIndicator";
+import AddAnnotationModal from "../components/AddAnnotationModal";
+import DocumentViewer from "../components/DocumentViewer";
+import ModelSelector from "../components/ModelSelector";
+import SelectedEntityPanel from "../components/SelectedEntityPanel";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -19,7 +26,10 @@ export default function Home() {
   const [annotations, setAnnotations] = useState([]);
   const [selectedEntity, setSelectedEntity] =
     useState(null);
-
+  
+  const [displayText, setDisplayText] =
+    useState("");
+  
   const [editedLabel, setEditedLabel] =
     useState("");
 
@@ -60,6 +70,75 @@ export default function Home() {
     );
   };
 
+  const [selectionPopup, setSelectionPopup] =
+    useState(null);
+
+  const [newLabel, setNewLabel] =
+    useState("");
+
+    const handleTextSelection = (
+      selectedText
+    ) => {
+      setSelectionPopup({
+        text: selectedText,
+      });
+    };
+
+    const handleMouseUp = () => {
+      const selection =
+        window.getSelection();
+    
+      const selectedText =
+        selection.toString().trim();
+    
+      if (selectedText) {
+        handleTextSelection(
+          selectedText
+        );
+      }
+    };
+  
+    const handleAddAnnotation = () => {
+      if (
+        !selectionPopup ||
+        !newLabel
+      ) {
+        return;
+      }
+    
+      const start =
+        displayText.indexOf(
+          selectionPopup.text
+        );
+    
+      if (start === -1) {
+        return;
+      }
+    
+      const end =
+        start +
+        selectionPopup.text.length;
+    
+      const newEntity = {
+        selected_text:
+          selectionPopup.text,
+        meaning_group:
+          newLabel,
+        model: "MANUAL",
+        start,
+        end,
+      };
+    
+      setAnnotations([
+        ...annotations,
+        newEntity,
+      ]);
+    
+      setSelectionPopup(null);
+    
+      setNewLabel("");
+    };
+
   const handleAnnotate = async () => {
     try {
       setIsLoading(true);
@@ -88,7 +167,7 @@ export default function Home() {
         response.entities
       );
   
-      setText(inputText);
+      setDisplayText(inputText);
     } catch (error) {
       console.error(
         "Backend Error:",
@@ -131,6 +210,7 @@ export default function Home() {
 
   const handleClearAll = () => {
     setText("");
+    setDisplayText("");
     setAnnotations([]);
     setSelectedEntity(null);
     setEditedLabel("");
@@ -288,304 +368,122 @@ export default function Home() {
         </p>
       </div>
 
-      <div
-        style={{
-          background: "white",
-          padding: "16px",
-          borderRadius: "16px",
-          boxShadow:
-            "0 2px 10px rgba(0,0,0,0.08)",
-          marginBottom: "25px",
-          textAlign: "center",
-        }}
-      >
-        <h3>
-          Select Annotation Engine
-        </h3>
-
-        <select
-          value={selectedModel}
-          onChange={(e) =>
-            setSelectedModel(
-              e.target.value
-            )
-          }
-          style={{
-            width: "350px",
-            maxWidth: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border:
-              "1px solid #d1d5db",
-          }}
-        >
-          <option>
-            Ensemble Transformer
-          </option>
-
-          <option>
-            scispaCy + Regex
-          </option>
-
-          <option>
-            Qwen 2.5 (LLM)
-          </option>
-        </select>
-      </div>
-
-      <div
-        style={{
-          background: "white",
-          padding: "25px",
-          borderRadius: "16px",
-          boxShadow:
-            "0 2px 10px rgba(0,0,0,0.08)",
-          marginBottom: "25px",
-        }}
-      >
-        <h3>Clinical Text</h3>
-
-        <textarea
-          rows="6"
-          value={
-            uploadedFile
-              ? ""
-              : text
-          }
-          placeholder="Paste clinical text here..."
-          onChange={(e) =>
-            setText(e.target.value)
-          }
-          data-gramm="false"
-          data-gramm_editor="false"
-          data-enable-grammarly="false"
-          style={{
-            width: "100%",
-            padding: "15px",
-            borderRadius: "10px",
-            border:
-              "1px solid #d1d5db",
-            resize: "vertical",
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: "30px",
-        }}
-      >
-        <h3
-          style={{
-            marginBottom: "15px",
-            color: "#374151",
-          }}
-        >
-          Actions
-        </h3>
-
-        <input
-          type="file"
-          accept=".txt,.pdf"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={handleFileUpload}
-        />
-
-        <button
-          onClick={() =>
-            fileInputRef.current.click()
-          }
-          style={{
-            background: "white",
-            border: "2px solid #2563eb",
-            color: "#2563eb",
-            padding: "12px 22px",
-            borderRadius: "10px",
-            marginRight: "10px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
-          Upload File
-        </button>
-
-        <button
-          onClick={handleAnnotate}
-          disabled={isLoading}
-          style={{
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            padding: "12px 22px",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
-        >
-          {
-            isLoading
-              ? "Annotating..."
-              : "Annotate"
-          }
-        </button>
-
-        <button
-        onClick={handleClearAll}
-        style={{
-          background: "#ef4444",
-          color: "white",
-          border: "none",
-          padding: "12px 22px",
-          borderRadius: "10px",
-          cursor: "pointer",
-          fontWeight: "600",
-          marginLeft: "10px",
-        }}
-      >
-        ↺ Clear All
-      </button>
-
-      <button
-        onClick={
-          handleDownloadJSON
+      <ModelSelector
+        selectedModel={selectedModel}
+        setSelectedModel={
+          setSelectedModel
         }
-        disabled={
-          annotations.length === 0
-        }
-        style={{
-          background: "#16a34a",
-          color: "white",
-          border: "none",
-          padding: "12px 22px",
-          borderRadius: "10px",
-          cursor: "pointer",
-          fontWeight: "600",
-          marginLeft: "10px",
-        }}
-      >
-        ⬇ Export JSON
-      </button>
+      />
 
-      </div>
+      <ClinicalTextInput
+        text={text}
+        uploadedFile={uploadedFile}
+        setText={setText}
+      />
 
-      {
-        uploadedFile && (
-          <div
-            style={{
-              marginTop: "20px",
-              padding: "12px",
-              background: "#f3f4f6",
-              borderRadius: "10px",
-              display: "inline-block",
-            }}
-          >
-            📄 {uploadedFile.name}
-          </div>
-        )
+      <ActionButtons
+      fileInputRef={fileInputRef}
+      handleFileUpload={handleFileUpload}
+      handleAnnotate={handleAnnotate}
+      handleClearAll={handleClearAll}
+      handleDownloadJSON={
+        handleDownloadJSON
       }
+      isLoading={isLoading}
+      annotations={annotations}
+    />
 
-      {
-        isLoading && (
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "20px",
-              fontWeight: "600",
-              color: "#2563eb",
-            }}
-          >
-            Processing document and extracting entities...
-          </div>
-        )
-      }
+      <UploadedFileCard
+        uploadedFile={uploadedFile}
+      />
+
+      <LoadingIndicator
+        isLoading={isLoading}
+      />
       <div
         style={{
           display: "grid",
           gridTemplateColumns:
             "2fr 1fr",
           gap: "20px",
+          height: "700px",
         }}
       >
-        <div
-          style={{
-            background: "white",
-            padding: "25px",
-            borderRadius: "16px",
-            boxShadow:
-              "0 2px 10px rgba(0,0,0,0.08)",
-            minHeight: "400px",
-          }}
-        >
-          <div
-            style={{
-              background: "#eff6ff",
-              padding: "12px",
-              borderRadius: "10px",
-              marginBottom: "20px",
-              fontWeight: "600",
-              color: "#1e40af",
-            }}
-          >
-            Clinical Document
-          </div>
+        <DocumentViewer
+          text={displayText}
+          annotations={annotations}
+          getLabelColor={getLabelColor}
+          setSelectedEntity={
+            setSelectedEntity
+          }
+          setEditedLabel={
+            setEditedLabel
+          }
+          handleMouseUp={
+            handleMouseUp
+          }
+        />
 
-          <div
-            style={{
-              fontSize: "17px",
-              lineHeight: "1.8",
-              marginTop: "20px",
-            }}
-          >
-            {text
-              ? renderHighlightedText({
-                  text,
-                  annotations,
-                  getLabelColor,
-                  setSelectedEntity,
-                  setEditedLabel,
-                })
-              : "Paste clinical text and click Annotate."}
-          </div>
-        </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+          height: "700px",
+        }}
+      >
+        <EntityPanel
+          annotations={annotations}
+          selectedEntity={selectedEntity}
+          setSelectedEntity={
+            setSelectedEntity
+          }
+          editedLabel={editedLabel}
+          setEditedLabel={
+            setEditedLabel
+          }
+          handleSaveEntity={
+            handleSaveEntity
+          }
+          getLabelColor={
+            getLabelColor
+          }
+        />
 
-        <div
-          style={{
-            background: "white",
-            padding: "25px",
-            borderRadius: "16px",
-            boxShadow:
-              "0 2px 10px rgba(0,0,0,0.08)",
-            minHeight: "500px",
-          }}
-        >
-          <EntityPanel
-            annotations={
-              annotations
-            }
-            selectedEntity={
-              selectedEntity
-            }
-            setSelectedEntity={
-              setSelectedEntity
-            }
-            editedLabel={
-              editedLabel
-            }
-            setEditedLabel={
-              setEditedLabel
-            }
-            handleSaveEntity={
-              handleSaveEntity
-            }
-            getLabelColor={
-              getLabelColor
-            }
-          />
+        <SelectedEntityPanel
+          selectedEntity={
+            selectedEntity
+          }
+          editedLabel={editedLabel}
+          setEditedLabel={
+            setEditedLabel
+          }
+          handleSaveEntity={
+            handleSaveEntity
+          }
+          setSelectedEntity={
+            setSelectedEntity
+          }
+          annotations={annotations}
+        />
+      </div>
+
+        <AddAnnotationModal
+          selectionPopup={
+            selectionPopup
+          }
+          newLabel={newLabel}
+          setNewLabel={setNewLabel}
+          annotations={annotations}
+          handleAddAnnotation={
+            handleAddAnnotation
+          }
+          setSelectionPopup={
+            setSelectionPopup
+          }
+        />
         </div>
       </div>
-    </div>
   );
 }
 
