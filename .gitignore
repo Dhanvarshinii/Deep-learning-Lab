@@ -1,2 +1,4 @@
 data/technetium/*
 !data/technetium/.gitkeep
+__pycache__/
+*.pyc
