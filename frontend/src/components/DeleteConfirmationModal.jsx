@@ -5,26 +5,42 @@ export default function DeleteConfirmationModal({
     setShowDeletePopup,
   }) {
     if (!showDeletePopup) {
-      return null;
-    }
-  
-    return (
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform:
-            "translate(-50%, -50%)",
-          background: "white",
-          padding: "25px",
-          borderRadius: "16px",
-          boxShadow:
-            "0 10px 30px rgba(0,0,0,0.2)",
-          zIndex: 1000,
-          minWidth: "350px",
-        }}
-      >
+        return null;
+      }
+      return (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background:
+                "rgba(0,0,0,0.4)",
+              zIndex: 999,
+            }}
+            onClick={() =>
+              setShowDeletePopup(false)
+            }
+          />
+      
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform:
+                "translate(-50%, -50%)",
+              background: "white",
+              padding: "25px",
+              borderRadius: "16px",
+              boxShadow:
+                "0 10px 30px rgba(0,0,0,0.2)",
+              zIndex: 1000,
+              minWidth: "350px",
+            }}
+          >
         <h3>
           Delete Annotation?
         </h3>
@@ -87,5 +103,6 @@ export default function DeleteConfirmationModal({
           </button>
         </div>
       </div>
+      </>
     );
   }

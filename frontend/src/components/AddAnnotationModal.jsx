@@ -1,25 +1,44 @@
 export default function AddAnnotationModal({
-    selectionPopup,
-    newLabel,
-    setNewLabel,
-    annotations,
-    handleAddAnnotation,
-    setSelectionPopup,
-  }) {
-    if (!selectionPopup) {
-      return null;
-    }
-  
-    const suggestedLabels = [
-      ...new Set(
-        annotations.map(
-          (item) =>
-            item.meaning_group
-        )
-      ),
-    ];
-  
-    return (
+  selectionPopup,
+  selectedLabel,
+  setSelectedLabel,
+  customLabel,
+  setCustomLabel,
+  annotations,
+  handleAddAnnotation,
+  setSelectionPopup,
+}) {
+  if (!selectionPopup) {
+    return null;
+  }
+
+  const suggestedLabels = [
+    ...new Set(
+      annotations.map(
+        (item) =>
+          item.meaning_group
+      )
+    ),
+  ];
+
+  return (
+    <>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background:
+            "rgba(0,0,0,0.4)",
+          zIndex: 999,
+        }}
+        onClick={() =>
+          setSelectionPopup(null)
+        }
+      />
+
       <div
         style={{
           position: "fixed",
@@ -32,38 +51,41 @@ export default function AddAnnotationModal({
           borderRadius: "16px",
           boxShadow:
             "0 10px 30px rgba(0,0,0,0.2)",
-          zIndex: 999,
+          zIndex: 1000,
           minWidth: "400px",
+          maxHeight: "80vh",
+          overflowY: "auto",
         }}
       >
         <h3>Add Annotation</h3>
-  
+
         <p>
           <strong>
             Selected Text:
           </strong>
         </p>
-  
-        <p
+
+        <div
           style={{
             background: "#f3f4f6",
             padding: "10px",
             borderRadius: "8px",
+            marginBottom: "15px",
           }}
         >
           {selectionPopup.text}
-        </p>
-  
+        </div>
+
         <p>
           <strong>
             Suggested Labels
           </strong>
         </p>
-  
+
         <select
-          value={newLabel}
+          value={selectedLabel}
           onChange={(e) =>
-            setNewLabel(
+            setSelectedLabel(
               e.target.value
             )
           }
@@ -71,13 +93,15 @@ export default function AddAnnotationModal({
             width: "100%",
             padding: "10px",
             borderRadius: "8px",
-            marginBottom: "10px",
+            border:
+              "1px solid #d1d5db",
+            marginBottom: "15px",
           }}
         >
           <option value="">
             Select Label
           </option>
-  
+
           {suggestedLabels.map(
             (label) => (
               <option
@@ -89,13 +113,19 @@ export default function AddAnnotationModal({
             )
           )}
         </select>
-  
+
+        <p>
+          <strong>
+            Or Create New Label
+          </strong>
+        </p>
+
         <input
           type="text"
-          placeholder="Or enter custom label"
-          value={newLabel}
+          placeholder="Enter custom label..."
+          value={customLabel}
           onChange={(e) =>
-            setNewLabel(
+            setCustomLabel(
               e.target.value
             )
           }
@@ -107,7 +137,7 @@ export default function AddAnnotationModal({
               "1px solid #d1d5db",
           }}
         />
-  
+
         <div
           style={{
             marginTop: "20px",
@@ -130,13 +160,15 @@ export default function AddAnnotationModal({
           >
             Save
           </button>
-  
+
           <button
-            onClick={() =>
+            onClick={() => {
               setSelectionPopup(
                 null
-              )
-            }
+              );
+              setSelectedLabel("");
+              setCustomLabel("");
+            }}
             style={{
               background: "#6b7280",
               color: "white",
@@ -150,5 +182,6 @@ export default function AddAnnotationModal({
           </button>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}

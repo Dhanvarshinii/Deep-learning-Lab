@@ -2,39 +2,47 @@ export default function SelectedEntityPanel({
     selectedEntity,
     editedLabel,
     setEditedLabel,
+    customEditedLabel,
+    setCustomEditedLabel,
     handleSaveEntity,
-    handleDeleteEntity,
-    showDeletePopup,
-    setShowDeletePopup,
     setSelectedEntity,
     annotations,
   }) {
     if (!selectedEntity) {
       return null;
     }
-
+  
     const labels = [
-        ...new Set(
-          annotations.map(
-            (item) => item.meaning_group
-          )
-        ),
-      ];
+      ...new Set(
+        annotations.map(
+          (item) =>
+            item.meaning_group
+        )
+      ),
+    ];
   
     return (
       <div
         style={{
           background: "white",
-          marginTop: "25px",
-          padding: "25px",
+          padding: "20px",
           borderRadius: "16px",
           boxShadow:
             "0 2px 10px rgba(0,0,0,0.08)",
-            height: "220px",
-            overflowY: "auto",
         }}
       >
-        <h3>Selected Entity</h3>
+        <div
+          style={{
+            background: "#eff6ff",
+            padding: "12px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            fontWeight: "600",
+            color: "#1e40af",
+          }}
+        >
+          Selected Entity
+        </div>
   
         <p>
           <strong>Text:</strong>{" "}
@@ -47,7 +55,7 @@ export default function SelectedEntityPanel({
           }}
         >
           <strong>
-            Meaning Group
+            Existing Labels
           </strong>
   
           <br />
@@ -63,38 +71,61 @@ export default function SelectedEntityPanel({
               marginTop: "8px",
               padding: "10px",
               borderRadius: "8px",
-              width: "250px",
+              width: "100%",
+              border:
+                "1px solid #d1d5db",
             }}
           >
             {labels.map((label) => (
-            <option
+              <option
                 key={label}
                 value={label}
-                >
+              >
                 {label}
-                </option>
+              </option>
             ))}
           </select>
-
+        </div>
+  
+        <div
+          style={{
+            marginTop: "15px",
+          }}
+        >
+          <strong>
+            Custom Label
+          </strong>
+  
+          <br />
+  
           <input
             type="text"
-            placeholder="Or enter custom label"
-            value={editedLabel}
+            placeholder="Enter custom label..."
+            value={customEditedLabel}
             onChange={(e) =>
-                setEditedLabel(e.target.value)
+              setCustomEditedLabel(
+                e.target.value
+              )
             }
             style={{
-                width: "250px",
-                marginTop: "10px",
-                padding: "10px",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
+              marginTop: "8px",
+              padding: "10px",
+              borderRadius: "8px",
+              width: "100%",
+              boxSizing:
+                "border-box",
+              border:
+                "1px solid #d1d5db",
             }}
-            />
+          />
         </div>
   
         {selectedEntity.score && (
-          <p>
+          <p
+            style={{
+              marginTop: "15px",
+            }}
+          >
             <strong>
               Confidence:
             </strong>{" "}
@@ -109,57 +140,49 @@ export default function SelectedEntityPanel({
         <div
           style={{
             marginTop: "20px",
+            display: "flex",
+            gap: "10px",
           }}
         >
           <button
             onClick={
-                handleSaveEntity
+              handleSaveEntity
             }
             style={{
-                background: "#16a34a",
-                color: "white",
-                border: "none",
-                padding: "10px 18px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginRight: "10px",
+              background:
+                "#16a34a",
+              color: "white",
+              border: "none",
+              padding:
+                "10px 18px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
             }}
-            >
+          >
             Save Changes
-            </button>
+          </button>
   
-            <button
-                onClick={() =>
-                    setShowDeletePopup(true)
-                }
-                style={{
-                    background: "#dc2626",
-                    color: "white",
-                    border: "none",
-                    padding: "10px 18px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    marginRight: "10px",
-                }}
-                >
-                Delete
-                </button>
-
-            <button
+          <button
             onClick={() =>
-                setSelectedEntity(null)
+              setSelectedEntity(
+                null
+              )
             }
             style={{
-                background: "#6b7280",
-                color: "white",
-                border: "none",
-                padding: "10px 18px",
-                borderRadius: "8px",
-                cursor: "pointer",
+              background:
+                "#dc2626",
+              color: "white",
+              border: "none",
+              padding:
+                "10px 18px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
             }}
-            >
+          >
             Close
-            </button>
+          </button>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { annotateText } from "../services/annotationService";
+import Header from "../components/Header";
 import EntityPanel from "../components/EntityPanel";
 import ActionButtons from "../components/ActionButtons";
 import ClinicalTextInput from "../components/ClinicalTextInput";
@@ -32,6 +33,10 @@ export default function Home() {
     useState("");
   
   const [editedLabel, setEditedLabel] =
+    useState("");
+  
+  const [customEditedLabel,
+    setCustomEditedLabel] =
     useState("");
 
   const fileInputRef = useRef(null);
@@ -78,38 +83,47 @@ export default function Home() {
     setShowDeletePopup] =
     useState(false);
 
-  const [newLabel, setNewLabel] =
+  const [selectedLabel,
+    setSelectedLabel] =
+    useState("");
+  
+  const [customLabel,
+    setCustomLabel] =
     useState("");
 
-    const handleTextSelection = (
-      selectedText
-    ) => {
-      setSelectionPopup({
-        text: selectedText,
-      });
-    };
+  const handleTextSelection = (
+    selectedText
+  ) => {
+    setSelectionPopup({
+      text: selectedText,
+    });
+  };
 
-    const handleMouseUp = () => {
-      const selection =
-        window.getSelection();
+  const handleMouseUp = () => {
+    const selection =
+      window.getSelection();
     
-      const selectedText =
-        selection.toString().trim();
-    
-      if (selectedText) {
-        handleTextSelection(
-          selectedText
-        );
-      }
-    };
+    const selectedText =
+      selection.toString().trim();
+  
+    if (selectedText) {
+      handleTextSelection(
+        selectedText
+      );
+    }
+  };
   
     const handleAddAnnotation = () => {
-      if (
-        !selectionPopup ||
-        !newLabel
-      ) {
-        return;
-      }
+      const finalLabel =
+      customLabel.trim() ||
+      selectedLabel;
+
+    if (
+      !selectionPopup ||
+      !finalLabel
+    ) {
+      return;
+    }
     
       const start =
         displayText.indexOf(
@@ -128,10 +142,11 @@ export default function Home() {
         selected_text:
           selectionPopup.text,
         meaning_group:
-          newLabel,
+          finalLabel,
         model: "MANUAL",
         start,
         end,
+        score: 1.0
       };
     
       setAnnotations([
@@ -140,8 +155,9 @@ export default function Home() {
       ]);
     
       setSelectionPopup(null);
-    
-      setNewLabel("");
+
+      setSelectedLabel("");
+      setCustomLabel("");
     };
 
   const handleAnnotate = async () => {
@@ -183,7 +199,12 @@ export default function Home() {
     }
   };
 
+
   const handleSaveEntity = () => {
+    const finalLabel =
+      customEditedLabel.trim() ||
+      editedLabel;
+
     const updatedAnnotations =
       annotations.map((item) => {
         if (
@@ -195,7 +216,7 @@ export default function Home() {
           return {
             ...item,
             meaning_group:
-              editedLabel,
+              finalLabel,
           };
         }
   
@@ -209,7 +230,7 @@ export default function Home() {
     setSelectedEntity({
       ...selectedEntity,
       meaning_group:
-        editedLabel,
+      finalLabel,
     });
   };
 
@@ -245,6 +266,10 @@ export default function Home() {
     setSelectedEntity(null);
     setEditedLabel("");
     setUploadedFile(null);
+  
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleDownloadJSON = () => {
@@ -371,61 +396,42 @@ export default function Home() {
         padding: "30px",
       }}
     >
+      <Header />
+
       <div
         style={{
-          textAlign: "center",
-          marginBottom: "30px",
+          display: "grid",
+          gridTemplateColumns: "1fr 2fr",
+          gap: "20px",
+          marginBottom: "25px",
+          alignItems: "start",
         }}
       >
-        <h1
-          style={{
-            fontSize: "38px",
-            marginBottom: "10px",
-            color: "#1e3a8a",
-          }}
-        >
-          Clinical NER Annotation Tool
-        </h1>
+        <ModelSelector
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
+        />
 
-        <p
-          style={{
-            fontSize: "18px",
-            color: "#6b7280",
-          }}
-        >
-          Human-in-the-loop Clinical
-          Entity Annotation Platform
-        </p>
+        <div>
+          <ClinicalTextInput
+            text={text}
+            uploadedFile={uploadedFile}
+            setText={setText}
+          />
+
+          <ActionButtons
+            fileInputRef={fileInputRef}
+            handleFileUpload={handleFileUpload}
+            handleAnnotate={handleAnnotate}
+            handleClearAll={handleClearAll}
+            handleDownloadJSON={handleDownloadJSON}
+            isLoading={isLoading}
+            annotations={annotations}
+            uploadedFile={uploadedFile}
+            text={text}
+          />
+        </div>
       </div>
-
-      <ModelSelector
-        selectedModel={selectedModel}
-        setSelectedModel={
-          setSelectedModel
-        }
-      />
-
-      <ClinicalTextInput
-        text={text}
-        uploadedFile={uploadedFile}
-        setText={setText}
-      />
-
-      <ActionButtons
-      fileInputRef={fileInputRef}
-      handleFileUpload={handleFileUpload}
-      handleAnnotate={handleAnnotate}
-      handleClearAll={handleClearAll}
-      handleDownloadJSON={
-        handleDownloadJSON
-      }
-      isLoading={isLoading}
-      annotations={annotations}
-    />
-
-      <UploadedFileCard
-        uploadedFile={uploadedFile}
-      />
 
       <LoadingIndicator
         isLoading={isLoading}
@@ -465,62 +471,38 @@ export default function Home() {
         <EntityPanel
           annotations={annotations}
           selectedEntity={selectedEntity}
-          setSelectedEntity={
-            setSelectedEntity
-          }
+          setSelectedEntity={setSelectedEntity}
           editedLabel={editedLabel}
-          setEditedLabel={
-            setEditedLabel
-          }
-          handleSaveEntity={
-            handleSaveEntity
-          }
-          getLabelColor={
-            getLabelColor
-          }
+          setEditedLabel={setEditedLabel}
+          handleSaveEntity={handleSaveEntity}
+          getLabelColor={getLabelColor}
         />
 
-        <SelectedEntityPanel
-          selectedEntity={
-            selectedEntity
-          }
-          editedLabel={editedLabel}
-          setEditedLabel={
-            setEditedLabel
-          }
-          handleSaveEntity={
-            handleSaveEntity
-          }
-          handleDeleteEntity={
-            handleDeleteEntity
-          }
-          showDeletePopup={
-            showDeletePopup
-          }
-          setShowDeletePopup={
-            setShowDeletePopup
-          }
-          setSelectedEntity={
-            setSelectedEntity
-          }
-          annotations={annotations}
-        />
+      <SelectedEntityPanel
+        selectedEntity={selectedEntity}
+        editedLabel={editedLabel}
+        setEditedLabel={setEditedLabel}
+        customEditedLabel={customEditedLabel}
+        setCustomEditedLabel={setCustomEditedLabel}
+        handleSaveEntity={handleSaveEntity}
+        handleDeleteEntity={handleDeleteEntity}
+        showDeletePopup={showDeletePopup}
+        setShowDeletePopup={setShowDeletePopup}
+        setSelectedEntity={setSelectedEntity}
+        annotations={annotations}
+      />
       </div>
 
-        <AddAnnotationModal
-          selectionPopup={
-            selectionPopup
-          }
-          newLabel={newLabel}
-          setNewLabel={setNewLabel}
-          annotations={annotations}
-          handleAddAnnotation={
-            handleAddAnnotation
-          }
-          setSelectionPopup={
-            setSelectionPopup
-          }
-        />
+      <AddAnnotationModal
+        selectionPopup={selectionPopup}
+        selectedLabel={selectedLabel}
+        setSelectedLabel={setSelectedLabel}
+        customLabel={customLabel}
+        setCustomLabel={setCustomLabel}
+        annotations={annotations}
+        handleAddAnnotation={handleAddAnnotation}
+        setSelectionPopup={setSelectionPopup}
+      />
 
       <DeleteConfirmationModal
         showDeletePopup={

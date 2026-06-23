@@ -2,21 +2,23 @@ export default function EntityPanel({
   annotations,
   selectedEntity,
   setSelectedEntity,
-  editedLabel,
   setEditedLabel,
+  customEditedLabel,
+  setCustomEditedLabel,
   getLabelColor,
 }) {
   return (
     <div
       style={{
         background: "white",
-        padding: "20px",
+        padding: "25px",
         borderRadius: "16px",
         boxShadow:
           "0 2px 10px rgba(0,0,0,0.08)",
         flex: 1,
-        overflowY: "auto",
-        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <div
@@ -32,67 +34,147 @@ export default function EntityPanel({
         Detected Entities ({annotations.length})
       </div>
 
-      {annotations.length === 0 ? (
-        <p>No entities detected.</p>
-      ) : (
-        annotations.map((item, index) => (
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          minHeight: 0,
+        }}
+      >
+        {annotations.length === 0 ? (
           <div
-            key={index}
-            onClick={() => {
-              setSelectedEntity(item);
-              setEditedLabel(
-                item.meaning_group
-              );
-            }}
             style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: "12px",
-              padding: "15px",
-              marginBottom: "15px",
-              cursor: "pointer",
+              textAlign: "center",
+              color: "#6b7280",
+              padding: "40px 20px",
             }}
           >
             <div
               style={{
-                backgroundColor:
-                  getLabelColor(
-                    item.meaning_group
-                  ),
-                color: "white",
-                display: "inline-block",
-                padding: "6px 12px",
-                borderRadius: "20px",
-                fontSize: "12px",
+                fontSize: "40px",
                 marginBottom: "10px",
               }}
             >
-              {item.meaning_group}
+              🏷️
             </div>
 
-            <p>
-              <strong>Text:</strong>{" "}
-              {item.selected_text}
-            </p>
+            <div
+              style={{
+                fontWeight: "600",
+              }}
+            >
+              No entities detected yet.
+            </div>
 
-            <p>
-              <strong>Model:</strong>{" "}
-              {item.model}
-            </p>
-
-            {item.score && (
-              <p>
-                <strong>
-                  Confidence:
-                </strong>{" "}
-                {(
-                  item.score * 100
-                ).toFixed(2)}
-                %
-              </p>
-            )}
+            <div
+              style={{
+                fontSize: "13px",
+                marginTop: "5px",
+              }}
+            >
+              Run annotation to view extracted entities.
+            </div>
           </div>
-        ))
-      )}
+        ) : (
+          annotations.map((item, index) => {
+            const isSelected =
+              selectedEntity &&
+              selectedEntity.start ===
+                item.start &&
+              selectedEntity.end ===
+                item.end;
+
+            return (
+              <div
+                key={index}
+                onClick={() => {
+                  setSelectedEntity(item);
+
+                  setEditedLabel(
+                    item.meaning_group
+                  );
+
+                  if (
+                    setCustomEditedLabel
+                  ) {
+                    setCustomEditedLabel(
+                      ""
+                    );
+                  }
+                }}
+                style={{
+                  background: isSelected
+                    ? "#eff6ff"
+                    : "#ffffff",
+
+                  border: isSelected
+                    ? "2px solid #2563eb"
+                    : "1px solid #e5e7eb",
+
+                  borderRadius: "14px",
+
+                  padding: "16px",
+
+                  marginBottom: "12px",
+
+                  cursor: "pointer",
+
+                  boxShadow: isSelected
+                    ? "0 2px 8px rgba(37,99,235,0.15)"
+                    : "0 1px 3px rgba(0,0,0,0.05)",
+
+                  transition:
+                    "all 0.2s ease",
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor:
+                      getLabelColor(
+                        item.meaning_group
+                      ),
+                    color: "white",
+                    display:
+                      "inline-block",
+                    padding:
+                      "6px 12px",
+                    borderRadius:
+                      "999px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    marginBottom:
+                      "10px",
+                  }}
+                >
+                  {item.meaning_group}
+                </div>
+
+                <div
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "15px",
+                    color: "#111827",
+                    marginBottom: "8px",
+                    wordBreak:
+                      "break-word",
+                  }}
+                >
+                  {item.selected_text}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                  }}
+                >
+                  {item.model}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
