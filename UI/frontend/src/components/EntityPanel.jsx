@@ -228,9 +228,9 @@ export default function EntityPanel({
                       setCustomEditedLabel("");
                       
                       setEditedScore(
-                        item.score
+                        item.score !== undefined
                           ? (item.score * 100).toFixed(0)
-                          : "100"
+                          : ""
                       );
                     }}
                     style={{
@@ -350,37 +350,41 @@ export default function EntityPanel({
                       }}
                     />
 
-                  <label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Confidence (%)
-                  </label>
+                  {item.score !== undefined && (
+                    <>
+                      <label
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Confidence (%)
+                      </label>
 
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={editedScore}
-                    onChange={(e) =>
-                      setEditedScore(
-                        e.target.value
-                      )
-                    }
-                    style={{
-                      width: "100%",
-                      marginTop: "6px",
-                      marginBottom: "12px",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      border:
-                        "1px solid #d1d5db",
-                      boxSizing:
-                        "border-box",
-                    }}
-                  />
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editedScore}
+                        onChange={(e) =>
+                          setEditedScore(
+                            e.target.value
+                          )
+                        }
+                        style={{
+                          width: "100%",
+                          marginTop: "6px",
+                          marginBottom: "12px",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          border:
+                            "1px solid #d1d5db",
+                          boxSizing:
+                            "border-box",
+                        }}
+                      />
+                    </>
+                  )}
 
                     <div
                       style={{
