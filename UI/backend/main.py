@@ -1,12 +1,16 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 from typing import Optional
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import subprocess
-import re
+from pydantic import BaseModel
+
+from services.ensemble import predict as ensemble_predict
+from services.qwen import predict as qwen_predict
+from services.scispacy import predict as scispacy_predict
 
 app = FastAPI()
 
+# Allow requests from the React frontend during development.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -16,11 +20,15 @@ app.add_middleware(
 )
 
 class PredictRequest(BaseModel):
+    """Request body for the prediction endpoint."""
+    
     model: str
     text: str
 
 
 class Entity(BaseModel):
+    """Standard entity structure returned by all supported models."""
+    
     meaning_group: str
     selected_text: str
     model: str
@@ -29,19 +37,44 @@ class Entity(BaseModel):
     end: int
     score: Optional[float] = None
 
+# Maps frontend model names to their corresponding prediction functions.
+MODEL_HANDLERS = {
+    "Ensemble Transformer": ensemble_predict,
+    "scispaCy + Regex": scispacy_predict,
+    "Qwen 2.5 (LLM)": qwen_predict,
+}
+
+# Optional model-specific input limits.
+MODEL_LIMITS = {
+    "Ensemble Transformer": 1500,
+}
+
 
 @app.get("/")
 def root():
+    """Health check endpoint."""
+
     return {"message": "Clinical NER Backend Running"}
 
 
 @app.post("/predict")
 def predict(request: PredictRequest):
+    """
+    Runs the selected clinical NER model and returns the extracted entities.
 
-    MODEL_LIMITS = {
-        "Ensemble Transformer": 1500,
-    }
+    The requested model is validated, any model-specific constraints are
+    applied, and the corresponding backend service is executed.
 
+    Args:
+        request: Prediction request containing the selected model
+            and clinical text.
+
+    Returns:
+        A JSON response containing the model name, input text,
+        and extracted entities.
+    """
+
+    # Validate model-specific input limits.
     limit = MODEL_LIMITS.get(request.model)
 
     if limit and len(request.text) > limit:
@@ -53,45 +86,17 @@ def predict(request: PredictRequest):
             ),
             "entities": [],
         }
-        
-    result = subprocess.run(
-        [
-            "python",
-            "../../models/pre_fine_tuned_models/ensemble_pretrained_ner.py",
-            "--text",
-            request.text,
-        ],
-        capture_output=True,
-        text=True,
-    )
 
-    output = result.stdout
+    # Select the appropriate prediction service.
+    handler = MODEL_HANDLERS.get(request.model)
 
-    entities = []
+    if not handler:
+        return {
+            "error": f"Unsupported model: {request.model}",
+            "entities": [],
+        }
 
-    lines = output.splitlines()
-
-    for line in lines:
-
-        if not re.match(r"^\d+\s+\|", line):
-            continue
-
-        parts = [p.strip() for p in line.split("|")]
-
-        if len(parts) < 8:
-            continue
-
-        entities.append(
-            {
-                "meaning_group": parts[1],
-                "selected_text": parts[2],
-                "model": parts[3],
-                "original_label": parts[4],
-                "start": int(parts[5]),
-                "end": int(parts[6]),
-                "score": float(parts[7]),
-            }
-        )
+    entities = handler(request.text)
 
     return {
         "model": request.model,

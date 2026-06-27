@@ -429,7 +429,10 @@ export default function Home() {
         padding: "30px",
       }}
     >
-      <Header />
+      <Header
+        annotations={annotations}
+        selectedModel={selectedModel}
+      />
 
       <div
         style={{
