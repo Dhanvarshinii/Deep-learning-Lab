@@ -1,13 +1,4 @@
 data/technetium/*
 !data/technetium/.gitkeep
-
-.DS_Store
 __pycache__/
-*.py[cod]
-
-outputs/
-*.safetensors
-*.pt
-*.pth
-*.bin
-*.zip
+*.pyc
