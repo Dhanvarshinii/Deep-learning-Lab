@@ -21,6 +21,18 @@ export default function ModelSelector({
       description:
         "Local LLM-powered clinical entity extraction using Qwen 2.5 through Ollama.",
     },
+    {
+      value: "BioBERT + MACCROBAT",
+      title: "BioBERT + MACCROBAT NER",
+      description:
+        "Fine-tuned BioBERT model trained on the MACCROBAT clinical corpus for biomedical named entity recognition.",
+    },
+    {
+      value: "ClinicalBERT + MACCROBAT",
+      title: "ClinicalBERT + MACCROBAT NER",
+      description:
+        "Fine-tuned ClinicalBERT model trained on the MACCROBAT clinical corpus for extracting clinical entities.",
+    },
   ];
 
   return (

@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from services.ensemble import predict as ensemble_predict
 from services.qwen import predict as qwen_predict
 from services.scispacy import predict as scispacy_predict
+from services.biobert import predict as biobert_predict
+from services.clinicalbert import predict as clinicalbert_predict
 
 app = FastAPI()
 
@@ -42,6 +44,8 @@ MODEL_HANDLERS = {
     "Ensemble Transformer": ensemble_predict,
     "scispaCy + Regex": scispacy_predict,
     "Qwen 2.5 (LLM)": qwen_predict,
+    "BioBERT + MACCROBAT": biobert_predict,
+    "ClinicalBERT + MACCROBAT": clinicalbert_predict,
 }
 
 # Optional model-specific input limits.
