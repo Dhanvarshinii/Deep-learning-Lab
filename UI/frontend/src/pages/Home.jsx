@@ -6,12 +6,10 @@ import ActionButtons from "../components/ActionButtons";
 import ClinicalTextInput from "../components/ClinicalTextInput";
 import UploadedFileCard from "../components/UploadedFileCard";
 import * as pdfjsLib from "pdfjs-dist";
-import LoadingIndicator from "../components/LoadingIndicator";
 import AddAnnotationModal from "../components/AddAnnotationModal";
 import DocumentViewer from "../components/DocumentViewer";
 import ModelSelector from "../components/ModelSelector";
-import SelectedEntityPanel from "../components/SelectedEntityPanel";
-import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -439,7 +437,11 @@ export default function Home() {
         annotations={annotations}
         processingTime={processingTime}
       />
-
+      
+      <LoadingOverlay
+              loading={isLoading}
+              selectedModel={selectedModel}
+            />
       <div
         style={{
           display: "grid",
@@ -475,9 +477,6 @@ export default function Home() {
         </div>
       </div>
 
-      <LoadingIndicator
-        isLoading={isLoading}
-      />
       <div
         style={{
           display: "grid",
