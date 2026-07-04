@@ -10,6 +10,9 @@ import AddAnnotationModal from "../components/AddAnnotationModal";
 import DocumentViewer from "../components/DocumentViewer";
 import ModelSelector from "../components/ModelSelector";
 import LoadingOverlay from "../components/LoadingOverlay";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import SaveConfirmationModal
+  from "../components/SaveConfirmationModal";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -55,33 +58,24 @@ export default function Home() {
   const [isLoading, setIsLoading] =
     useState(false);
 
-  const colorPalette = [
-    "#2563eb",
-    "#dc2626",
-    "#16a34a",
-    "#9333ea",
-    "#ea580c",
-    "#0891b2",
-    "#ca8a04",
-    "#db2777",
-  ];
+
+  const labelColorMap = useRef({});
 
   const getLabelColor = (label) => {
-    const labels = [
-      ...new Set(
-        annotations.map(
-          (item) => item.meaning_group
-        )
-      ),
-    ];
+    if (!labelColorMap.current[label]) {
+      let hash = 0;
 
-    const index = labels.indexOf(label);
+      for (let i = 0; i < label.length; i++) {
+        hash = label.charCodeAt(i) + ((hash << 5) - hash);
+      }
 
-    return (
-      colorPalette[
-        index % colorPalette.length
-      ]
-    );
+      const hue = Math.abs(hash) % 360;
+
+      labelColorMap.current[label] =
+        `hsl(${hue}, 65%, 88%)`;
+    }
+
+    return labelColorMap.current[label];
   };
 
   const [selectionPopup, setSelectionPopup] =
@@ -89,6 +83,9 @@ export default function Home() {
 
   const [showDeletePopup,
     setShowDeletePopup] =
+    useState(false);
+  
+  const [showSavePopup, setShowSavePopup] =
     useState(false);
 
   const [selectedLabel,
@@ -98,18 +95,6 @@ export default function Home() {
   const [customLabel,
     setCustomLabel] =
     useState("");
-
-    const handleTextSelection = (
-      text,
-      start,
-      end
-    ) => {
-      setSelectionPopup({
-        text,
-        start,
-        end,
-      });
-    };
 
   const handleMouseUp = () => {
     const selection =
@@ -267,30 +252,33 @@ export default function Home() {
   
     setSelectedEntity({
       ...selectedEntity,
-      meaning_group:
-      finalLabel,
+      meaning_group: finalLabel,
+    
+      ...(selectedEntity.score !== undefined && {
+        score: Number(editedScore) / 100,
+      }),
     });
+
+    setEditingEntity(null);
   };
 
-  const handleDeleteEntity = (
-    entityToDelete
-  ) => {
+  const handleDeleteEntity = () => {
+    if (!selectedEntity) return;
+  
     const updatedAnnotations =
       annotations.filter(
         (item) =>
           !(
-            item.start ===
-              entityToDelete.start &&
-            item.end ===
-              entityToDelete.end
+            item.start === selectedEntity.start &&
+            item.end === selectedEntity.end
           )
       );
   
-    setAnnotations(
-      updatedAnnotations
-    );
+    setAnnotations(updatedAnnotations);
   
     setSelectedEntity(null);
+    setEditingEntity(null);
+    setShowDeletePopup(false);
   };
 
   const handleClearAll = () => {
@@ -437,7 +425,7 @@ export default function Home() {
         annotations={annotations}
         processingTime={processingTime}
       />
-      
+
       <LoadingOverlay
               loading={isLoading}
               selectedModel={selectedModel}
@@ -529,6 +517,9 @@ export default function Home() {
           handleSaveEntity={handleSaveEntity}
           handleDeleteEntity={handleDeleteEntity}
 
+          setShowDeletePopup={setShowDeletePopup}
+          setShowSavePopup={setShowSavePopup}
+
           getLabelColor={getLabelColor}
         />
       </div>
@@ -542,6 +533,23 @@ export default function Home() {
         annotations={annotations}
         handleAddAnnotation={handleAddAnnotation}
         setSelectionPopup={setSelectionPopup}
+      />
+
+      <DeleteConfirmationModal
+        showDeletePopup={showDeletePopup}
+        selectedEntity={selectedEntity}
+        handleDeleteEntity={handleDeleteEntity}
+        setShowDeletePopup={setShowDeletePopup}
+      />    
+
+      <SaveConfirmationModal
+        showSavePopup={showSavePopup}
+        selectedEntity={selectedEntity}
+        editedLabel={editedLabel}
+        customEditedLabel={customEditedLabel}
+        editedScore={editedScore}
+        handleSaveEntity={handleSaveEntity}
+        setShowSavePopup={setShowSavePopup}
       />
         </div>
       </div>

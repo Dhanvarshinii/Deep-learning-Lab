@@ -56,17 +56,16 @@ export const renderHighlightedText = ({
             setSelectedEntity(entity);
             setEditedLabel(entity.meaning_group);
           }}
+
           style={{
-            backgroundColor: getLabelColor(
-              entity.meaning_group
-            ),
-            color: "white",
-            padding: "3px 6px",
-            borderRadius: "6px",
-            fontWeight: "600",
+            backgroundColor: getLabelColor(entity.meaning_group),
+            color: "#374151",
+            padding: "1px 3px",
+            borderRadius: "3px",
+            fontWeight: "400",
             cursor: "pointer",
-            display: "inline",
-            whiteSpace: "nowrap",
+            lineHeight: "1.8",
+            transition: "background-color 0.2s ease",
           }}
         >
           {entity.selected_text}

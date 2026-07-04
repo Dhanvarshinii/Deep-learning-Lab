@@ -18,6 +18,9 @@ export default function EntityPanel({
   handleSaveEntity,
   handleDeleteEntity,
 
+  setShowDeletePopup,
+  setShowSavePopup,
+
   getLabelColor,
 }) {
   return (
@@ -36,24 +39,48 @@ export default function EntityPanel({
     >
       <div
         style={{
-          background: "#f5f3ff",
-          padding: "12px",
-          borderRadius: "10px",
-          marginBottom: "20px",
-          fontWeight: "600",
-          color: "#6d28d9",
+          marginBottom: "18px",
         }}
       >
-        Detected Entities ({annotations.length})
+        <div
+          style={{
+            fontSize: "20px",
+            fontWeight: "600",
+            color: "#1e40af",
+            marginBottom: "6px",
+          }}
+        >
+          Entities ({annotations.length})
+        </div>
+
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#6b7280",
+            lineHeight: "1.6",
+          }}
+        >
+          Review what each engine found. Edit the label,
+          inspect the confidence score, or remove
+          annotations as needed.
+        </div>
       </div>
 
       <div
         style={{
-          flex: 1,
-          overflowY: "auto",
-          minHeight: 0,
+          height: "1px",
+          background: "#e5e7eb",
+          marginBottom: "22px",
         }}
-      >
+      />
+
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            paddingRight: "4px",
+          }}
+        >
         {annotations.length === 0 ? (
           <div
             style={{
@@ -115,6 +142,7 @@ export default function EntityPanel({
                     );
                   }
                 }}
+
                 style={{
                   background: isSelected
                     ? "#eff6ff"
@@ -146,15 +174,16 @@ export default function EntityPanel({
                       getLabelColor(
                         item.meaning_group
                       ),
-                    color: "white",
+                    color: "#374151",
                     display:
                       "inline-block",
                     padding:
-                      "6px 12px",
+                      "5px 10px",
                     borderRadius:
-                      "999px",
+                      "8px",
+                    border: "1px solid rgba(0,0,0,0.08)",
                     fontSize: "12px",
-                    fontWeight: "600",
+                    fontWeight: "400",
                     marginBottom:
                       "10px",
                   }}
@@ -247,18 +276,19 @@ export default function EntityPanel({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                    
+                      setSelectedEntity(item);
 
-                      handleDeleteEntity(item);
-
-                      setEditingEntity(null);
+                      setShowDeletePopup(true);
                     }}
                     style={{
                       background: "transparent",
-                      color: "white",
+                      color: "#dc2626",
                       border: "none",
                       padding: "10px 14px",
                       borderRadius: "8px",
                       cursor: "pointer",
+                      fontSize: "16px",
                     }}
                   >
                     🗑️
@@ -266,16 +296,16 @@ export default function EntityPanel({
                 </div>
 
                 {editingEntity &&
-                editingEntity.start === item.start &&
-                editingEntity.end === item.end && (
-                  <div
-                    style={{
-                      marginTop: "15px",
-                      paddingTop: "15px",
-                      borderTop:
-                        "1px solid #e5e7eb",
-                    }}
-                  >
+                  editingEntity.start === item.start &&
+                  editingEntity.end === item.end && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        marginTop: "15px",
+                        paddingTop: "15px",
+                        borderTop: "1px solid #e5e7eb",
+                      }}
+                    >
                     <label
                       style={{
                         fontSize: "13px",
@@ -396,19 +426,13 @@ export default function EntityPanel({
                         onClick={(e) => {
                           e.stopPropagation();
 
-                          handleSaveEntity();
-
-                          setEditingEntity(
-                            null
-                          );
+                          setShowSavePopup(true);
                         }}
                         style={{
-                          background:
-                            "#16a34a",
+                          background: "#16a34a",
                           color: "white",
                           border: "none",
-                          padding:
-                            "10px 14px",
+                          padding: "10px 14px",
                           borderRadius: "8px",
                           cursor: "pointer",
                         }}
