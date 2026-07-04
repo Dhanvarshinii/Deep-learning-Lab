@@ -1,22 +1,15 @@
 import { Stethoscope } from "lucide-react";
 
+/**
+ * Application header displayed at the top of the page.
+ *
+ * Shows the application title along with a summary of the
+ * available models, detected entities, and processing time.
+ */
 export default function Header({
   annotations,
-  selectedModel,
+  processingTime,
 }) {
-  const averageConfidence =
-    annotations.length > 0
-      ? Math.round(
-          (annotations.reduce(
-            (sum, entity) =>
-              sum + (entity.score ?? 1),
-            0
-          ) /
-            annotations.length) *
-            100
-        )
-      : "--";
-
   return (
     <div
       style={{
@@ -26,7 +19,7 @@ export default function Header({
         marginBottom: "50px",
       }}
     >
-      {/* LEFT SIDE */}
+      {/* Application title and description */}
       <div
         style={{
           display: "flex",
@@ -89,15 +82,14 @@ export default function Header({
               maxWidth: "780px",
             }}
           >
-            Run clinical notes through an annotation
-            engine, review detected entities and
-            confidence scores, then refine the results
-            directly on the document.
+            Run clinical notes through multiple annotation
+            models, review detected entities, and refine
+            the results directly on the document.
           </p>
         </div>
       </div>
 
-      {/* RIGHT SIDE STATS */}
+      {/* Summary statistics */}
       <div
         style={{
           display: "flex",
@@ -110,6 +102,7 @@ export default function Header({
           minWidth: "420px",
         }}
       >
+        {/* Available models */}
         <div>
           <div
             style={{
@@ -136,6 +129,7 @@ export default function Header({
           </div>
         </div>
 
+        {/* Number of detected entities */}
         <div>
           <div
             style={{
@@ -162,6 +156,7 @@ export default function Header({
           </div>
         </div>
 
+        {/* Total processing time */}
         <div>
           <div
             style={{
@@ -172,7 +167,7 @@ export default function Header({
               marginBottom: "4px",
             }}
           >
-            {averageConfidence}%
+            {processingTime ?? "--"} s
           </div>
 
           <div
@@ -184,7 +179,7 @@ export default function Header({
               textTransform: "uppercase",
             }}
           >
-            Avg. Confidence
+            Processing Time
           </div>
         </div>
       </div>

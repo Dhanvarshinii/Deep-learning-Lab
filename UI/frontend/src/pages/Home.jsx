@@ -36,6 +36,8 @@ export default function Home() {
   
   const [displayText, setDisplayText] =
     useState("");
+
+  const [processingTime, setProcessingTime] = useState("--");
   
   const [editedLabel, setEditedLabel] =
     useState("");
@@ -197,19 +199,19 @@ export default function Home() {
       const inputText =
       uploadedFile?.text || text;
 
-    console.log("INPUT TEXT:");
-    console.log(inputText);
-
-    console.log("TEXT LENGTH:");
-    console.log(inputText.length);
+    const start = performance.now();
   
     const response = await annotateText(
       selectedModel,
       inputText
     );
+
+    const end = performance.now();
+
+    setProcessingTime(
+      ((end - start) / 1000).toFixed(2)
+    );
     
-    console.log("BACKEND RESPONSE:");
-    console.log(response);
     if (response.error) {
       alert(response.error);
       setIsLoading(false);
@@ -247,13 +249,14 @@ export default function Home() {
         ) {
           return {
             ...item,
-            meaning_group:
-              finalLabel,
+            meaning_group: finalLabel,
           
-            score:
-              Number(
-                editedScore
-              ) / 100,
+            ...(item.score !== undefined && {
+              score:
+                Number(
+                  editedScore
+                ) / 100,
+            }),
           };
         }
   
@@ -299,6 +302,9 @@ export default function Home() {
     setSelectedEntity(null);
     setEditedLabel("");
     setUploadedFile(null);
+
+    // Reset processing time
+    setProcessingTime("--");
   
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -431,7 +437,7 @@ export default function Home() {
     >
       <Header
         annotations={annotations}
-        selectedModel={selectedModel}
+        processingTime={processingTime}
       />
 
       <div
@@ -526,20 +532,6 @@ export default function Home() {
 
           getLabelColor={getLabelColor}
         />
-
-      {/* <SelectedEntityPanel
-        selectedEntity={selectedEntity}
-        editedLabel={editedLabel}
-        setEditedLabel={setEditedLabel}
-        customEditedLabel={customEditedLabel}
-        setCustomEditedLabel={setCustomEditedLabel}
-        handleSaveEntity={handleSaveEntity}
-        handleDeleteEntity={handleDeleteEntity}
-        showDeletePopup={showDeletePopup}
-        setShowDeletePopup={setShowDeletePopup}
-        setSelectedEntity={setSelectedEntity}
-        annotations={annotations}
-      /> */}
       </div>
 
       <AddAnnotationModal
@@ -552,21 +544,6 @@ export default function Home() {
         handleAddAnnotation={handleAddAnnotation}
         setSelectionPopup={setSelectionPopup}
       />
-
-      {/* <DeleteConfirmationModal
-        showDeletePopup={
-          showDeletePopup
-        }
-        selectedEntity={
-          selectedEntity
-        }
-        handleDeleteEntity={
-          handleDeleteEntity
-        }
-        setShowDeletePopup={
-          setShowDeletePopup
-        }
-        /> */}
         </div>
       </div>
   );
