@@ -13,6 +13,8 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import SaveConfirmationModal
   from "../components/SaveConfirmationModal";
+import ExportSuccessModal
+  from "../components/ExportSuccessModal";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -54,6 +56,13 @@ export default function Home() {
 
   const [uploadedFile, setUploadedFile] =
   useState(null);
+
+  const [showExportSuccess, setShowExportSuccess] =
+  useState(false);
+  
+  const [exportFileName,
+    setExportFileName] =
+    useState("");
 
   const [isLoading, setIsLoading] =
     useState(false);
@@ -305,10 +314,23 @@ export default function Home() {
     };
   
     const jsonString = JSON.stringify(exportData, null, 2);
-  
-    const defaultFileName = `${
-      (uploadedFile?.name || "manual_input").replace(/\.[^/.]+$/, "")
-    }_annotations.json`;
+
+    // Generate a timestamped default filename
+    const baseName =
+      (uploadedFile?.name || "manual_input")
+        .replace(/\.[^/.]+$/, "");
+
+    const now = new Date();
+
+    const timestamp =
+      `${now.getFullYear()}-` +
+      `${String(now.getMonth() + 1).padStart(2, "0")}-` +
+      `${String(now.getDate()).padStart(2, "0")}_` +
+      `${String(now.getHours()).padStart(2, "0")}-` +
+      `${String(now.getMinutes()).padStart(2, "0")}`;
+
+    const defaultFileName =
+      `${baseName}_annotations_${timestamp}.json`;
   
     // Modern browsers (Chrome, Edge)
     if ("showSaveFilePicker" in window) {
@@ -328,17 +350,22 @@ export default function Home() {
         const writable = await handle.createWritable();
         await writable.write(jsonString);
         await writable.close();
+        setExportFileName(defaultFileName);
+        setShowExportSuccess(true);
   
         return;
       } catch (err) {
-        // User cancelled
         if (err.name === "AbortError") {
-          return;
+            return;
         }
-  
-        console.error(err);
-      }
+    
+        console.error("Export failed:", err);
+    
+        alert(
+            "Unable to save the annotations.\n\nPlease try again."
+        );
     }
+  }
   
     // Fallback for unsupported browsers
     const blob = new Blob([jsonString], {
@@ -353,6 +380,9 @@ export default function Home() {
     link.download = defaultFileName;
   
     link.click();
+
+    setExportFileName(defaultFileName);
+    setShowExportSuccess(true);
   
     URL.revokeObjectURL(url);
   };
@@ -567,6 +597,12 @@ export default function Home() {
         handleSaveEntity={handleSaveEntity}
         setShowSavePopup={setShowSavePopup}
       />
+
+        <ExportSuccessModal
+          showExportSuccess={showExportSuccess}
+          fileName={exportFileName}
+          setShowExportSuccess={setShowExportSuccess}
+        />
         </div>
       </div>
   );
