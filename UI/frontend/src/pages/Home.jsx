@@ -297,44 +297,60 @@ export default function Home() {
     }
   };
 
-  const handleDownloadJSON = () => {
+  const handleDownloadJSON = async () => {
     const exportData = {
-      document_name:
-        uploadedFile?.name ||
-        "manual_input",
-  
-      annotation_model:
-        selectedModel,
-  
-      annotations:
-        annotations,
+      document_name: uploadedFile?.name || "manual_input",
+      annotation_model: selectedModel,
+      annotations,
     };
   
-    const jsonString =
-      JSON.stringify(
-        exportData,
-        null,
-        2
-      );
+    const jsonString = JSON.stringify(exportData, null, 2);
   
-    const blob = new Blob(
-      [jsonString],
-      {
-        type:
-          "application/json",
+    const defaultFileName = `${
+      (uploadedFile?.name || "manual_input").replace(/\.[^/.]+$/, "")
+    }_annotations.json`;
+  
+    // Modern browsers (Chrome, Edge)
+    if ("showSaveFilePicker" in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: defaultFileName,
+          types: [
+            {
+              description: "JSON Files",
+              accept: {
+                "application/json": [".json"],
+              },
+            },
+          ],
+        });
+  
+        const writable = await handle.createWritable();
+        await writable.write(jsonString);
+        await writable.close();
+  
+        return;
+      } catch (err) {
+        // User cancelled
+        if (err.name === "AbortError") {
+          return;
+        }
+  
+        console.error(err);
       }
-    );
+    }
   
-    const url =
-      URL.createObjectURL(blob);
+    // Fallback for unsupported browsers
+    const blob = new Blob([jsonString], {
+      type: "application/json",
+    });
   
-    const link =
-      document.createElement("a");
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
   
     link.href = url;
-  
-    link.download =
-      "annotations.json";
+    link.download = defaultFileName;
   
     link.click();
   
