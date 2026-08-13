@@ -1,8 +1,16 @@
 jupyter
 ipykernel
+numpy
 pandas
 torch
 transformers
+datasets
+seqeval
+accelerate
+requests
+fastapi
+uvicorn[standard]
+pydantic
 click>=8.1,<9
 spacy>=3.7,<3.8
 scispacy==0.5.4
