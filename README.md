@@ -82,16 +82,16 @@ Deep-learning-Lab/
 
 ## Prerequisites
 
-- Windows PowerShell
-- Python 3.9 or newer (tested with Python 3.9.13)
-- Node.js and npm
+- Windows, macOS, or Linux
+- Python 3.9 or newer (tested with Python 3.9.13 and Python 3.11)
+- Node.js 20.19 or newer and npm
 - Git LFS
 - Internet access during initial dependency/model installation
 - Ollama only when using the Qwen 2.5 option
 
-A CUDA GPU is optional. The local BioBERT and ClinicalBERT models automatically use CUDA when available and otherwise run on CPU.
+A CUDA GPU is optional. The local BioBERT and ClinicalBERT models automatically use CUDA when available and otherwise run on CPU. On macOS, the standalone inference scripts use CPU.
 
-## Complete setup
+## Windows setup and execution
 
 Open PowerShell, replace the example path with the location of your clone, and enter the project root:
 
@@ -159,11 +159,11 @@ cd UI\frontend
 npm ci
 ```
 
-## Run the application
+### Run the application on Windows
 
 The backend and frontend must run in separate terminals.
 
-### Terminal 1: backend
+#### Terminal 1: backend
 
 Start the backend from `UI/backend`. This working directory is required by the current model service paths.
 
@@ -180,7 +180,7 @@ Verify the backend at `http://127.0.0.1:8000/`. The expected response is:
 {"message": "Clinical NER Backend Running"}
 ```
 
-### Terminal 2: frontend
+#### Terminal 2: frontend
 
 ```powershell
 cd "C:\path\to\Deep-learning-Lab\UI\frontend"
@@ -194,6 +194,185 @@ http://localhost:5173
 ```
 
 Use `localhost`, rather than `127.0.0.1`, for the frontend because the backend development CORS configuration allows `http://localhost:5173`.
+
+## macOS setup and execution
+
+The following commands use Terminal and Homebrew. If Homebrew is not installed, install it from `https://brew.sh` first.
+
+### 1. Install system prerequisites
+
+```bash
+brew install python@3.11 node git-lfs
+```
+
+Enter the cloned project directory:
+
+```bash
+cd /path/to/Deep-learning-Lab
+```
+
+### 2. Download Git LFS model files
+
+```bash
+git lfs install
+git lfs pull
+```
+
+The two final `model.safetensors` files should each be approximately 411 MB.
+
+### 3. Create the Python environment
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### 4. Install the five scispaCy model packages
+
+```bash
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bionlp13cg_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_craft_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_jnlpba_md-0.5.4.tar.gz
+```
+
+### 5. Prepare Ollama for Qwen 2.5
+
+This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama from `https://ollama.com`, open the Ollama application, and run:
+
+```bash
+ollama pull qwen2.5:14b-instruct
+```
+
+### 6. Install the frontend
+
+```bash
+cd UI/frontend
+npm ci
+cd ../..
+```
+
+### 7. Run the backend
+
+Open a terminal and start the backend from `UI/backend`:
+
+```bash
+cd /path/to/Deep-learning-Lab
+source .venv/bin/activate
+cd UI/backend
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Verify the backend at `http://127.0.0.1:8000/`.
+
+### 8. Run the frontend
+
+Open a second terminal:
+
+```bash
+cd /path/to/Deep-learning-Lab/UI/frontend
+npm run dev
+```
+
+Open `http://localhost:5173` or the exact URL printed by Vite.
+
+## Linux setup and execution
+
+The following instructions target Ubuntu and Debian-based distributions. For another distribution, install the equivalent Python, Git LFS, and Node.js packages with its package manager. Ensure Node.js 20.19 or newer is installed before running `npm ci`.
+
+### 1. Install system prerequisites
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip git git-lfs build-essential
+node --version
+npm --version
+```
+
+If the displayed Node.js version is older than 20.19, install a current Node.js LTS release from `https://nodejs.org` before continuing.
+
+Enter the cloned project directory:
+
+```bash
+cd /path/to/Deep-learning-Lab
+```
+
+### 2. Download Git LFS model files
+
+```bash
+git lfs install
+git lfs pull
+```
+
+The two final `model.safetensors` files should each be approximately 411 MB.
+
+### 3. Create the Python environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### 4. Install the five scispaCy model packages
+
+```bash
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bionlp13cg_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_craft_md-0.5.4.tar.gz
+python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_jnlpba_md-0.5.4.tar.gz
+```
+
+### 5. Prepare Ollama for Qwen 2.5
+
+This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama using the Linux instructions at `https://ollama.com`, then download the model:
+
+```bash
+ollama pull qwen2.5:14b-instruct
+```
+
+If the Ollama service is not running, start it in a separate terminal:
+
+```bash
+ollama serve
+```
+
+### 6. Install the frontend
+
+```bash
+cd UI/frontend
+npm ci
+cd ../..
+```
+
+### 7. Run the backend
+
+Open a terminal and start the backend from `UI/backend`:
+
+```bash
+cd /path/to/Deep-learning-Lab
+source .venv/bin/activate
+cd UI/backend
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Verify the backend at `http://127.0.0.1:8000/`.
+
+### 8. Run the frontend
+
+Open a second terminal:
+
+```bash
+cd /path/to/Deep-learning-Lab/UI/frontend
+npm run dev
+```
+
+Open `http://localhost:5173` or the exact URL printed by Vite.
 
 ## Using the UI
 
