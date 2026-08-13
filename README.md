@@ -87,7 +87,7 @@ Deep-learning-Lab/
 - Node.js 20.19 or newer and npm
 - Git LFS
 - Internet access during initial dependency/model installation
-- Ollama only when using the Qwen 2.5 option
+- Ollama only when using the Qwen 2.5 option. Ollama is a separate system application and is not installed by `pip` or `requirements.txt`.
 
 A CUDA GPU is optional. The local BioBERT and ClinicalBERT models automatically use CUDA when available and otherwise run on CPU. On macOS, the standalone inference scripts use CPU.
 
@@ -140,9 +140,16 @@ python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/release
 
 This step is required only for the `Qwen 2.5 (LLM)` option.
 
-Install Ollama, start the Ollama application or server, and download the model:
+Install Ollama from PowerShell:
 
 ```powershell
+irm https://ollama.com/install.ps1 | iex
+```
+
+Alternatively, download the Windows installer from [Ollama for Windows](https://ollama.com/download/windows). After installation, close and reopen PowerShell, then verify the command and download the model:
+
+```powershell
+ollama --version
 ollama pull qwen2.5:14b-instruct
 ```
 
@@ -241,9 +248,16 @@ python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/release
 
 ### 5. Prepare Ollama for Qwen 2.5
 
-This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama from `https://ollama.com`, open the Ollama application, and run:
+This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama from Terminal:
 
 ```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Alternatively, download the application from [Ollama for macOS](https://ollama.com/download/mac). Open Ollama, then verify the command and download the model:
+
+```bash
+ollama --version
 ollama pull qwen2.5:14b-instruct
 ```
 
@@ -330,9 +344,16 @@ python -m pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/release
 
 ### 5. Prepare Ollama for Qwen 2.5
 
-This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama using the Linux instructions at `https://ollama.com`, then download the model:
+This step is required only for the `Qwen 2.5 (LLM)` option. Install Ollama using its official installation script:
 
 ```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Verify the command and download the model:
+
+```bash
+ollama --version
 ollama pull qwen2.5:14b-instruct
 ```
 
