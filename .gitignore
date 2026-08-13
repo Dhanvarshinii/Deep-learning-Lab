@@ -1,5 +1,3 @@
-data/technetium/*
-!data/technetium/.gitkeep
 data/maccrobat/*
 !data/maccrobat/.gitkeep
 models/**/checkpoint-*/
