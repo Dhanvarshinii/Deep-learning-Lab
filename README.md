@@ -5,7 +5,7 @@
 Implemented by:
 
 - Aveen Vas (3759264)
-- Byna Rithika (3859109)
+- Byna Rithika (3759109)
 - Dhanvarshini Ramesh (3762374)
 
 ## Project overview
